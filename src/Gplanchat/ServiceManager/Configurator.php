@@ -31,26 +31,26 @@ class Configurator
 {
     public function __invoke(ServiceManagerInterface $serviceManager, array $configuration)
     {
-        if (isset($configuration['serviceManager']['invokables'])) {
-            foreach ($configuration['serviceManager']['invokables'] as $serviceName => $invokable) {
+        if (isset($configuration['invokables'])) {
+            foreach ($configuration['invokables'] as $serviceName => $invokable) {
                 $serviceManager->registerInvokable($serviceName, $invokable);
             }
         }
 
-        if (isset($configuration['serviceManager']['singletons'])) {
-            foreach ($configuration['serviceManager']['singletons'] as $serviceName => $singleton) {
+        if (isset($configuration['singletons'])) {
+            foreach ($configuration['singletons'] as $serviceName => $singleton) {
                 $serviceManager->registerSingleton($serviceName, $singleton);
             }
         }
 
-        if (isset($configuration['serviceManager']['aliases'])) {
-            foreach ($configuration['serviceManager']['aliases'] as $serviceName => $alias) {
+        if (isset($configuration['aliases'])) {
+            foreach ($configuration['aliases'] as $serviceName => $alias) {
                 $serviceManager->registerAlias($serviceName, $alias);
             }
         }
 
-        if (isset($configuration['serviceManager']['factories'])) {
-            foreach ($configuration['serviceManager']['factories'] as $serviceName => $factory) {
+        if (isset($configuration['factories'])) {
+            foreach ($configuration['factories'] as $serviceName => $factory) {
                 $serviceManager->registerFactory($serviceName, $factory);
             }
         }
