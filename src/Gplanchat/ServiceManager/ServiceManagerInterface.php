@@ -34,12 +34,22 @@ interface ServiceManagerInterface
     /**
      * Get the service instance
      *
-     * @abstract
      * @param string $serviceName
      * @param array $constructorParams
+     * @param bool $ignoreInexistent
+     * @throws RuntimeException
      * @return mixed
      */
-    public function get($serviceName, array $constructorParams = []);
+    public function get($serviceName, array $constructorParams = [], $ignoreInexistent = false);
+
+    /**
+     * Tests if the the service is declared
+     *
+     * @abstract
+     * @param string $serviceName
+     * @return mixed
+     */
+    public function has($serviceName);
 
     /**
      * Detects whether the specified service name is associated with a registered service alias or not.

@@ -50,10 +50,15 @@ trait ServiceManagerTrait
     private $factories = [];
 
     /**
+     * Get the service instance
+     *
      * @param string $serviceName
+     * @param array $constructorParams
+     * @param bool $ignoreInexistent
+     * @throws RuntimeException
      * @return mixed
      */
-    public function get($serviceName, array $constructorParams = [])
+    public function get($serviceName, array $constructorParams = [], $ignoreInexistent = false)
     {
         while ($this->isAlias($serviceName)) {
             $serviceName = $this->getAlias($serviceName);
@@ -75,7 +80,35 @@ trait ServiceManagerTrait
             return $this->invokeFactory($serviceName, $constructorParams);
         }
 
+        if (!$ignoreInexistent) {
+            throw new RuntimeException(sprintf('Service "%s" was not found.', $serviceName));
+        }
         return null;
+    }
+
+    /**
+     * @param string $serviceName
+     * @return mixed
+     */
+    public function has($serviceName)
+    {
+        while ($this->isAlias($serviceName)) {
+            $serviceName = $this->getAlias($serviceName);
+        }
+
+        if (true === $this->isInvokable($serviceName)) {
+            return true;
+        }
+
+        if (true === $this->isSingleton($serviceName)) {
+            return true;
+        }
+
+        if (true === $this->isFactory($serviceName)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
