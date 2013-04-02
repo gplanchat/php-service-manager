@@ -50,32 +50,65 @@ trait ServiceManagerTrait
     private $factories = [];
 
     /**
+     * Get the service instance
+     *
      * @param string $serviceName
+     * @param array $constructorParams
+     * @param bool $ignoreInexistent
+     * @throws RuntimeException
      * @return mixed
      */
-    public function get($serviceName)
+    public function get($serviceName, array $constructorParams = [], $ignoreInexistent = false)
     {
         while ($this->isAlias($serviceName)) {
             $serviceName = $this->getAlias($serviceName);
         }
 
         if (true === $this->isInvokable($serviceName)) {
-            return $this->invoke($this->invokables[$serviceName]);
+            return $this->invoke($this->invokables[$serviceName], $constructorParams);
         }
 
         if (true === $this->isSingleton($serviceName)) {
             if (is_string($this->singletons[$serviceName])) {
-                $this->singletons[$serviceName] = $this->invoke($this->singletons[$serviceName]);
+                $this->singletons[$serviceName] = $this->invoke($this->singletons[$serviceName], $constructorParams);
             }
 
             return $this->singletons[$serviceName];
         }
 
         if (true === $this->isFactory($serviceName)) {
-            return $this->invokeFactory($this->invokables[$serviceName]);
+            return $this->invokeFactory($serviceName, $constructorParams);
         }
 
+        if (!$ignoreInexistent) {
+            throw new RuntimeException(sprintf('Service "%s" was not found.', $serviceName));
+        }
         return null;
+    }
+
+    /**
+     * @param string $serviceName
+     * @return mixed
+     */
+    public function has($serviceName)
+    {
+        while ($this->isAlias($serviceName)) {
+            $serviceName = $this->getAlias($serviceName);
+        }
+
+        if (true === $this->isInvokable($serviceName)) {
+            return true;
+        }
+
+        if (true === $this->isSingleton($serviceName)) {
+            return true;
+        }
+
+        if (true === $this->isFactory($serviceName)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -84,7 +117,7 @@ trait ServiceManagerTrait
      */
     public function __invoke()
     {
-        return $this->get(func_get_arg(0));
+        return $this->get(func_get_arg(0), func_get_arg(1));
     }
 
     /**
@@ -141,22 +174,28 @@ trait ServiceManagerTrait
 
     /**
      * @param string $className
+     * @param array $constructorParams
      * @return mixed
      */
-    public function invoke($className)
+    public function invoke($className, array $constructorParams = [])
     {
-        return new $className;
+        if (empty($constructorParams)) {
+            return new $className;
+        }
+
+        $re = new \ReflectionClass($className);
+        return $re->newInstanceArgs($constructorParams);
     }
 
     /**
      * @param string $className
+     * @param array $extraParams
      * @return mixed
      */
-    public function invokeFactory($serviceName)
+    public function invokeFactory($serviceName, array $extraParams = [])
     {
         if (isset($this->factories[$serviceName])) {
-            $factory = $this->factories[$serviceName];
-            return $factory[$serviceName]($this);
+            return $this->factories[$serviceName]($this, $extraParams);
         }
 
         return null;
