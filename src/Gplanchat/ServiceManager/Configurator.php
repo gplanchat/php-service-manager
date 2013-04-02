@@ -24,6 +24,8 @@
  */
 namespace Gplanchat\ServiceManager;
 
+use Traversable;
+
 /**
  * Service Manager configuration helper
  */
@@ -31,25 +33,25 @@ class Configurator
 {
     public function __invoke(ServiceManagerInterface $serviceManager, array $configuration)
     {
-        if (isset($configuration['invokables'])) {
+        if (isset($configuration['invokables']) && (is_array($configuration['invokables'] || $configuration['invokables'] instanceof Traversable))) {
             foreach ($configuration['invokables'] as $serviceName => $invokable) {
                 $serviceManager->registerInvokable($serviceName, $invokable);
             }
         }
 
-        if (isset($configuration['singletons'])) {
+        if (isset($configuration['singletons']) && (is_array($configuration['singletons'] || $configuration['singletons'] instanceof Traversable))) {
             foreach ($configuration['singletons'] as $serviceName => $singleton) {
                 $serviceManager->registerSingleton($serviceName, $singleton);
             }
         }
 
-        if (isset($configuration['aliases'])) {
+        if (isset($configuration['aliases']) && (is_array($configuration['aliases'] || $configuration['aliases'] instanceof Traversable))) {
             foreach ($configuration['aliases'] as $serviceName => $alias) {
                 $serviceManager->registerAlias($serviceName, $alias);
             }
         }
 
-        if (isset($configuration['factories'])) {
+        if (isset($configuration['factories']) && (is_array($configuration['factories'] || $configuration['factories'] instanceof Traversable))) {
             foreach ($configuration['factories'] as $serviceName => $factory) {
                 $serviceManager->registerFactory($serviceName, $factory);
             }

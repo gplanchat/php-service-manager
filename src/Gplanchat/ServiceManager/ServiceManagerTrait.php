@@ -180,7 +180,7 @@ trait ServiceManagerTrait
      * @param string $alias
      * @param bool $allowOverride
      * @return ServiceManagerInterface
-     * @throws Gplanchat\ServiceManager\RuntimeException
+     * @throws RuntimeException
      */
     public function registerAlias($serviceName, $alias, $allowOverride = false)
     {
@@ -198,7 +198,7 @@ trait ServiceManagerTrait
      * @param string $invokable
      * @param bool $allowOverride
      * @return ServiceManagerInterface
-     * @throws Gplanchat\ServiceManager\RuntimeException
+     * @throws RuntimeException
      */
     public function registerInvokable($serviceName, $invokable, $allowOverride = false)
     {
@@ -216,7 +216,7 @@ trait ServiceManagerTrait
      * @param string $singleton
      * @param bool $allowOverride
      * @return ServiceManagerInterface
-     * @throws Gplanchat\ServiceManager\RuntimeException
+     * @throws RuntimeException
      */
     public function registerSingleton($serviceName, $singleton, $allowOverride = false)
     {
@@ -234,7 +234,7 @@ trait ServiceManagerTrait
      * @param callable $factory
      * @param bool $allowOverride
      * @return ServiceManagerInterface
-     * @throws Gplanchat\ServiceManager\RuntimeException
+     * @throws RuntimeException
      */
     public function registerFactory($serviceName, callable $factory, $allowOverride = false)
     {
