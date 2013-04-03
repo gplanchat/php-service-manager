@@ -40,7 +40,7 @@ interface ServiceManagerInterface
      * @throws RuntimeException
      * @return mixed
      */
-    public function get($serviceName, array $constructorParams = [], $ignoreInexistent = false);
+    public function get($serviceName, array $constructorParams = [], $ignoreInexistent = false, $ignorePeering = false);
 
     /**
      * Tests if the the service is declared
@@ -49,7 +49,7 @@ interface ServiceManagerInterface
      * @param string $serviceName
      * @return mixed
      */
-    public function has($serviceName);
+    public function has($serviceName, $ignorePeering = false);
 
     /**
      * Detects whether the specified service name is associated with a registered service alias or not.
@@ -164,7 +164,7 @@ interface ServiceManagerInterface
      * @return ServiceManagerInterface
      * @throws RuntimeException
      */
-    public function registerInitializer($initializer, $priority = null);
+    public function registerInitializer(callable $initializer, $priority = null);
 
     /**
      * @abstract
