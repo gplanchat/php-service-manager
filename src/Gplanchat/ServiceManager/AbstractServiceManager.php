@@ -49,4 +49,13 @@ abstract class AbstractServiceManager
             $configurator($this, $config);
         }
     }
+
+    public function __call($method, array $params)
+    {
+        if (!substr($method, 0, 3) === 'get') {
+            throw new BadMethodCallException(sprintf('Method "%s" does not exist.', $method));
+        }
+
+        return $this->get(substr($method, 3), $params);
+    }
 }

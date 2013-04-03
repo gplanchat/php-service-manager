@@ -59,6 +59,9 @@ class Configurator
 
         if (isset($configuration['initializers']) && (is_array($configuration['initializers'] || $configuration['initializers'] instanceof Traversable))) {
             foreach ($configuration['initializers'] as $initializerName => $initializer) {
+                if (is_string ($initializer)) {
+                    $initializer = new $initializer;
+                }
                 $serviceManager->registerInitializer($initializerName, $initializer);
             }
         }
