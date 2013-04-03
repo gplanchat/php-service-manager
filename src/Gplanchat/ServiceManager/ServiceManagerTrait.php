@@ -32,22 +32,32 @@ trait ServiceManagerTrait
     /**
      * @var array
      */
-    private $aliases = [];
+    protected $aliases = [];
 
     /**
      * @var array
      */
-    private $invokables = [];
+    protected $invokables = [];
 
     /**
      * @var array
      */
-    private $singletons = [];
+    protected $singletons = [];
 
     /**
      * @var array
      */
-    private $factories = [];
+    protected $factories = [];
+
+    /**
+     * @var \SplPriorityQueue|null
+     */
+    protected $initializers = null;
+
+    /**
+     * @var array
+     */
+    protected $peeringServiceManagers = [];
 
     /**
      * Get the service instance
@@ -55,10 +65,11 @@ trait ServiceManagerTrait
      * @param string $serviceName
      * @param array $constructorParams
      * @param bool $ignoreInexistent
+     * @param bool $ignorePeering
      * @throws RuntimeException
      * @return mixed
      */
-    public function get($serviceName, array $constructorParams = [], $ignoreInexistent = false)
+    public function get($serviceName, array $constructorParams = [], $ignoreInexistent = false, $ignorePeering = false)
     {
         while ($this->isAlias($serviceName)) {
             $serviceName = $this->getAlias($serviceName);
@@ -80,17 +91,30 @@ trait ServiceManagerTrait
             return $this->invokeFactory($serviceName, $constructorParams);
         }
 
+        if (!$ignorePeering) {
+            foreach ($this->peeringServiceManagers as $serviceManager) {
+                /** @var ServiceManagerInterface $serviceManager */
+                $service = $serviceManager->get($serviceName, $constructorParams, $ignoreInexistent);
+
+                if ($service !== null) {
+                    return $service;
+                }
+            }
+        }
+
         if (!$ignoreInexistent) {
             throw new RuntimeException(sprintf('Service "%s" was not found.', $serviceName));
         }
+
         return null;
     }
 
     /**
      * @param string $serviceName
+     * @param bool $ignorePeering
      * @return mixed
      */
-    public function has($serviceName)
+    public function has($serviceName, $ignorePeering = false)
     {
         while ($this->isAlias($serviceName)) {
             $serviceName = $this->getAlias($serviceName);
@@ -113,11 +137,14 @@ trait ServiceManagerTrait
 
     /**
      * @param string $serviceName
+     * @param array $constructorParams
+     * @param bool $ignoreInexistent
+     * @param bool $ignorePeering
      * @return mixed
      */
-    public function __invoke()
+    public function __invoke($serviceName, array $constructorParams = [], $ignoreInexistent = false, $ignorePeering = false)
     {
-        return $this->get(func_get_arg(0), func_get_arg(1));
+        return $this->get($serviceName, $constructorParams, $ignoreInexistent);
     }
 
     /**
@@ -173,29 +200,41 @@ trait ServiceManagerTrait
     }
 
     /**
-     * @param string $className
+     * @param string $serviceName
      * @param array $constructorParams
      * @return mixed
      */
-    public function invoke($className, array $constructorParams = [])
+    public function invoke($serviceName, array $constructorParams = [])
     {
         if (empty($constructorParams)) {
-            return new $className;
+            $instance = new $serviceName;
+        } else {
+            $re = new \ReflectionClass($serviceName);
+            $instance = $re->newInstanceArgs($constructorParams);
         }
 
-        $re = new \ReflectionClass($className);
-        return $re->newInstanceArgs($constructorParams);
+        foreach ($this->initializers as $initializer) {
+            $initializer($instance, $this);
+        }
+
+        return $instance;
     }
 
     /**
-     * @param string $className
+     * @param string $serviceName
      * @param array $extraParams
      * @return mixed
      */
     public function invokeFactory($serviceName, array $extraParams = [])
     {
         if (isset($this->factories[$serviceName])) {
-            return $this->factories[$serviceName]($this, $extraParams);
+            $instance = $this->factories[$serviceName]($this, $extraParams);
+
+            foreach ($this->initializers as $initializer) {
+                $initializer($instance, $this);
+            }
+
+            return $instance;
         }
 
         return null;
@@ -282,6 +321,37 @@ trait ServiceManagerTrait
         } else {
             throw new RuntimeException(sprintf('Factory "%s" has already been registered.', $serviceName));
         }
+
+        return $this;
+    }
+
+    /**
+     * Register a new service initializer
+     *
+     * @param callable $initializer
+     * @param int|null $priority
+     * @return ServiceManagerInterface
+     * @throws RuntimeException
+     */
+    public function registerInitializer(callable $initializer, $priority = null)
+    {
+        if ($this->initializers === null) {
+            $this->initializers = new \SplPriorityQueue();
+        }
+
+        $this->initializers->insert($initializer, $priority);
+
+        return $this;
+    }
+
+    /**
+     * @param ServiceManagerInterface $childManager
+     * @param string $peering
+     * @return ServiceManagerInterface
+     */
+    public function registerPeeringServiceManager(ServiceManagerInterface $childManager, $peering)
+    {
+        $this->peeringServiceManagers[$peering] = $childManager;
 
         return $this;
     }

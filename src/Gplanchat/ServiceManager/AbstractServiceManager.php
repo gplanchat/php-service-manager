@@ -30,8 +30,23 @@ use Gplanchat\ServiceManager\ServiceManagerInterface;
 /**
  * A basic service manager, nothing is implemented here, all is in the traits
  */
-class ServiceManager
+abstract class AbstractServiceManager
     implements ServiceManagerInterface
 {
     use ServiceManagerTrait;
+
+    /**
+     * @param array $config
+     * @param Configurator $configurator
+     */
+    public function __construct(array $config = null, Configurator $configurator = null)
+    {
+        if ($config !== null) {
+            if ($configurator === null) {
+                $configurator = new Configurator();
+            }
+
+            $configurator($this, $config);
+        }
+    }
 }

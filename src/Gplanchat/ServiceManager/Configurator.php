@@ -56,5 +56,11 @@ class Configurator
                 $serviceManager->registerFactory($serviceName, $factory);
             }
         }
+
+        if (isset($configuration['initializers']) && (is_array($configuration['initializers'] || $configuration['initializers'] instanceof Traversable))) {
+            foreach ($configuration['initializers'] as $initializerName => $initializer) {
+                $serviceManager->registerInitializer($initializerName, $initializer);
+            }
+        }
     }
 }

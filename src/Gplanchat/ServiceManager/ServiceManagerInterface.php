@@ -154,4 +154,23 @@ interface ServiceManagerInterface
      * @throws RuntimeException
      */
     public function registerFactory($serviceName, callable $factory, $allowOverride = false);
+
+    /**
+     * Register a new service factory
+     *
+     * @abstract
+     * @param callable $initializer
+     * @param int|null $priority
+     * @return ServiceManagerInterface
+     * @throws RuntimeException
+     */
+    public function registerInitializer($initializer, $priority = null);
+
+    /**
+     * @abstract
+     * @param ServiceManagerInterface $childManager
+     * @param string $peering
+     * @return ServiceManagerInterface
+     */
+    public function registerPeeringServiceManager(ServiceManagerInterface $childManager, $peering);
 }
