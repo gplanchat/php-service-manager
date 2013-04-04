@@ -159,12 +159,13 @@ interface ServiceManagerInterface
      * Register a new service factory
      *
      * @abstract
+     * @param string $serviceName
      * @param callable $initializer
      * @param int|null $priority
      * @return ServiceManagerInterface
      * @throws RuntimeException
      */
-    public function registerInitializer(callable $initializer, $priority = null);
+    public function registerInitializer($serviceName, callable $initializer, $priority = null);
 
     /**
      * @abstract

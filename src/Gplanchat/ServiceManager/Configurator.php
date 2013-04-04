@@ -58,11 +58,26 @@ class Configurator
         }
 
         if (isset($configuration['initializers']) && (is_array($configuration['initializers'] || $configuration['initializers'] instanceof Traversable))) {
-            foreach ($configuration['initializers'] as $initializerName => $initializer) {
-                if (is_string ($initializer)) {
-                    $initializer = new $initializer;
+            foreach ($configuration['initializers'] as $initializerName => $initializerConfig) {
+                $initializerPriority = 0;
+                $initializerClass = null;
+
+                if (is_array($initializerConfig) && isset($initializerConfig['class'])) {
+                    $initializerClass = $initializerConfig['class'];
+                    if (isset($initializerConfig['priority'])) {
+                        $initializerPriority = $initializerConfig['priority'];
+                    }
+                } else if (is_string ($initializerConfig)) {
+                    $initializerClass = $initializerConfig;
                 }
-                $serviceManager->registerInitializer($initializerName, $initializer);
+
+                if ($initializerClass === null) {
+                    continue;
+                }
+
+                $initializer = new $initializerClass;
+
+                $serviceManager->registerInitializer($initializerName, $initializer, $initializerPriority);
             }
         }
     }

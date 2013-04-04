@@ -50,9 +50,9 @@ trait ServiceManagerTrait
     protected $factories = [];
 
     /**
-     * @var \SplPriorityQueue|null
+     * @var array
      */
-    protected $initializers = null;
+    protected $initializers = [];
 
     /**
      * @var array
@@ -328,18 +328,35 @@ trait ServiceManagerTrait
     /**
      * Register a new service initializer
      *
+     * @param string $serviceName
      * @param callable $initializer
      * @param int|null $priority
      * @return ServiceManagerInterface
      * @throws RuntimeException
      */
-    public function registerInitializer(callable $initializer, $priority = null)
+    public function registerInitializer($serviceName, callable $initializer, $priority = null)
     {
-        if ($this->initializers === null) {
-            $this->initializers = new \SplPriorityQueue();
+        if (is_string($serviceName)) {
+            if ($serviceName === '*') {
+                $serviceNameList = array_merge(
+                    array_keys($this->invokables),
+                    array_keys($this->singletons),
+                    array_keys($this->factories)
+                );
+            } else {
+                $serviceNameList = [$serviceName];
+            }
+        } else {
+            $serviceNameList = $serviceName;
         }
 
-        $this->initializers->insert($initializer, $priority);
+        foreach ($serviceNameList as $serviceName) {
+            if ($this->initializers[$serviceName] === null) {
+                $this->initializers[$serviceName] = new \SplPriorityQueue();
+            }
+
+            $this->initializers[$serviceName]->insert($initializer, $priority);
+        }
 
         return $this;
     }
