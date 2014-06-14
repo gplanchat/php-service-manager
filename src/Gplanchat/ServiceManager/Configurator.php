@@ -33,7 +33,6 @@ class Configurator
 {
     public function __invoke(ServiceManagerInterface $serviceManager, array $configuration)
     {
-        var_dump($configuration);
         if (isset($configuration['invokables']) && (is_array($configuration['invokables']) || $configuration['invokables'] instanceof Traversable)) {
 
             foreach ($configuration['invokables'] as $serviceName => $invokable) {
