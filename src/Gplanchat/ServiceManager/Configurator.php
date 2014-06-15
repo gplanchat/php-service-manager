@@ -33,31 +33,36 @@ class Configurator
 {
     public function __invoke(ServiceManagerInterface $serviceManager, array $configuration)
     {
-        if (isset($configuration['invokables']) && (is_array($configuration['invokables'] || $configuration['invokables'] instanceof Traversable))) {
+        if (isset($configuration['invokables']) && (is_array($configuration['invokables']) || $configuration['invokables'] instanceof Traversable)) {
+
             foreach ($configuration['invokables'] as $serviceName => $invokable) {
                 $serviceManager->registerInvokable($serviceName, $invokable);
             }
         }
 
-        if (isset($configuration['singletons']) && (is_array($configuration['singletons'] || $configuration['singletons'] instanceof Traversable))) {
+        if (isset($configuration['singletons']) && (is_array($configuration['singletons']) || $configuration['singletons'] instanceof Traversable)) {
             foreach ($configuration['singletons'] as $serviceName => $singleton) {
                 $serviceManager->registerSingleton($serviceName, $singleton);
             }
         }
 
-        if (isset($configuration['aliases']) && (is_array($configuration['aliases'] || $configuration['aliases'] instanceof Traversable))) {
+        if (isset($configuration['aliases']) && (is_array($configuration['aliases']) || $configuration['aliases'] instanceof Traversable)) {
             foreach ($configuration['aliases'] as $serviceName => $alias) {
                 $serviceManager->registerAlias($serviceName, $alias);
             }
         }
 
-        if (isset($configuration['factories']) && (is_array($configuration['factories'] || $configuration['factories'] instanceof Traversable))) {
+        if (isset($configuration['factories']) && (is_array($configuration['factories']) || $configuration['factories'] instanceof Traversable)) {
             foreach ($configuration['factories'] as $serviceName => $factory) {
+                //$factory must be a callable if a string is passed attempt to instantiate.
+                if(is_string($factory) && class_exists($factory)) {
+                    $factory = new $factory;
+                }
                 $serviceManager->registerFactory($serviceName, $factory);
             }
         }
 
-        if (isset($configuration['initializers']) && (is_array($configuration['initializers'] || $configuration['initializers'] instanceof Traversable))) {
+        if (isset($configuration['initializers']) && (is_array($configuration['initializers']) || $configuration['initializers'] instanceof Traversable)) {
             foreach ($configuration['initializers'] as $initializerName => $initializerConfig) {
                 $initializerPriority = 0;
                 $initializerClass = null;

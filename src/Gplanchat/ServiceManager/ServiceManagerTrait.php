@@ -227,7 +227,13 @@ trait ServiceManagerTrait
      */
     public function invokeFactory($serviceName, array $extraParams = [])
     {
-        if (isset($this->factories[$serviceName])) {
+        if (isset($this->factories[$serviceName])) {           
+            if(is_string($this->factories[$serviceName]) 
+                && class_exists($this->factories[$serviceName])) {
+                
+                $this->factories[$serviceName] = new $this->factories[$serviceName];
+            }
+            
             $instance = $this->factories[$serviceName]($this, $extraParams);
 
             foreach ($this->initializers as $initializer) {
